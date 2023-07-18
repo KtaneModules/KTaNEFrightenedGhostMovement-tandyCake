@@ -83,6 +83,7 @@ public class FrightenedGMScript : MonoBehaviour
             initialDisplayedDirections[i] = ghostPositions[i].inlets.PickRandom();
             displayedDirections[i] = initialDisplayedDirections[i];
         }
+        Log("The ghosts start in positions {0} moving in the directions {1}.", ghostPositions.Select(x => x.coordinate).Join(", "), displayedDirections.Join(", "));
     }
     void GetRNGIndices()
     {

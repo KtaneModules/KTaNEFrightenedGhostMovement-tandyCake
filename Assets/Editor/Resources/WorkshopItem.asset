@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cf2299c8864afe4ab42466f546ae20d, type: 3}
   m_Name: WorkshopItem
   m_EditorClassIdentifier: 
-  WorkshopPublishedFileID: 2400323193
-  Title: Ghost Movement
+  WorkshopPublishedFileID: 3006363222
+  Title: Frightened Ghost Movement
   Tags:
   - Regular Module

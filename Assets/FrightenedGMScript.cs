@@ -18,21 +18,20 @@ public class FrightenedGMScript : MonoBehaviour
     static int moduleIdCounter = 1;
     int moduleId;
     private bool moduleSolved;
-    private bool activated;
 
     public KMSelectable[] ghosts;
     public KMSelectable pacMan;
     public TextMesh[] displays;
 
-    private string[] ghostPositions = new string[];
-    private Dir[] initialDisplayedDirections;
-    private Dir[] displayedDirections;
+    private Intersection[] ghostPositions;
+    private Dir[] initialDisplayedDirections = new Dir[4];
+    private Dir[] displayedDirections = new Dir[4];
 
     private Dir[] romTable;
 
     private int[] rngIndices;
     private Dir[] romTableDirections;
-    private Dir[] finalDirections;
+    private Dir[] finalDirections = new Dir[4];
 
     private bool isHeld;
     private float timeHeld;
@@ -45,10 +44,9 @@ public class FrightenedGMScript : MonoBehaviour
         pacMan.OnInteractEnded += () => ReleaseBtn();
         for (int i = 0; i < 4; i++)
         {
-            int ix = 0;
+            int ix = i;
             ghosts[ix].OnInteract += () => { RotateArrow(ix); return false; };
         }
-        Module.OnActivate += () => DisplayInfo();
     }
 
     void Start()
@@ -57,6 +55,8 @@ public class FrightenedGMScript : MonoBehaviour
         GetDisplayedInfo();
         GetRNGIndices();
         GetStartingDirections();
+        GetFinalDirections();
+        SetDisplays();
     }
     void GenerateROMTable()
     {
@@ -76,7 +76,13 @@ public class FrightenedGMScript : MonoBehaviour
     }
     void GetDisplayedInfo()
     {
-
+        Data.intersections.Shuffle();
+        ghostPositions = Data.intersections.Take(4).ToArray();
+        for (int i = 0; i < 4; i++)
+        {
+            initialDisplayedDirections[i] = ghostPositions[i].inlets.PickRandom();
+            displayedDirections[i] = initialDisplayedDirections[i];
+        }
     }
     void GetRNGIndices()
     {
@@ -89,16 +95,27 @@ public class FrightenedGMScript : MonoBehaviour
     void GetStartingDirections()
     {
         romTableDirections = rngIndices.Select(x => romTable[x % 400]).ToArray();
-        Log("Indexing the RNG indices mod 400 into the ROM Table gives starting directions of {0}.", romTable.Join(", "));
+        Log("Indexing the RNG indices mod 400 into the ROM Table gives starting directions of {0}.", romTableDirections.Join(", "));
+    }
+    void GetFinalDirections()
+    {
+        for (int ghostIx = 0; ghostIx < 4; ghostIx++)
+        {
+            Dir finalDir = romTableDirections[ghostIx];
+            Dir forbidden = Data.Invert(initialDisplayedDirections[ghostIx]);
+            while (!ghostPositions[ghostIx].outlets.Contains(finalDir) || finalDir == forbidden)
+                finalDir = Data.Next(finalDir);
+            finalDirections[ghostIx] = finalDir;
+        }
+        Log("The final directions for each ghost are {0}.", finalDirections.Join(", "));
     }
 
-    void DisplayInfo()
+    void SetDisplays()
     {
-        activated = true;
         for (int i = 0; i < 4; i++)
         {
-            displayedDirections[i] = (Dir)Rnd.Range(0, 4);
-            displays[i].text = string.Format("{0}\n\n{1}", ghostPositions[i], Data.arrows[displayedDirections[i]]);
+            displays[i].text = string.Format("{0}\n\n{1}", ghostPositions[i].coordinate, Data.arrows[displayedDirections[i]]);
+            displays[i].color = Color.white;
         }
     }
 
@@ -107,32 +124,66 @@ public class FrightenedGMScript : MonoBehaviour
         if (isHeld)
             return;
         isHeld = true;
-        pacMan.AddInteractionPunch(.75f);
+        pacMan.AddInteractionPunch();
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, pacMan.transform);
         timeHeld = Time.time;
     }
     void ReleaseBtn()
     {
         isHeld = false;
-        pacMan.AddInteractionPunch(.25f);
+        pacMan.AddInteractionPunch(.5f);
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonRelease, pacMan.transform);
-        if (!activated || moduleSolved)
+        if (moduleSolved)
             return;
-        if (Time.time - timeHeld > .4f)
+        Audio.PlaySoundAtTransform("GM press", transform);
+        if (Time.time - timeHeld > 0.4)
             Reset();
         else Submit();
     }
     void Reset()
     {
-
+        for (int i = 0; i < 4; i++)
+            displayedDirections[i] = initialDisplayedDirections[i];
+        SetDisplays();
     }
     void Submit()
     {
-
+        bool allCorrect = true;
+        for (int i = 0; i < 4; i++)
+        {
+            if (displayedDirections[i] == finalDirections[i])
+                displays[i].color = Color.green;
+            else
+            {
+                allCorrect = false;
+                displays[i].color = Color.red;
+            }
+        }
+        if (allCorrect)
+            Solve();
+        else Strike();
+    }
+    void Solve()
+    {
+        moduleSolved = true;
+        Audio.PlaySoundAtTransform("GM solve", transform);
+        Log("Submitted the directions {0}. Module solved!", displayedDirections.Join(", "));
+        Module.HandlePass();
+    }
+    void Strike()
+    {
+        Audio.PlaySoundAtTransform("GM strike", transform);
+        Log("Submitted the directions {0}. Strike!", displayedDirections.Join(", "));
+        Module.HandleStrike();
     }
     void RotateArrow(int pos)
     {
-
+        ghosts[pos].AddInteractionPunch();
+        if (moduleSolved)
+            return;
+        Audio.PlaySoundAtTransform("GM press", transform);
+        displayedDirections[pos] = Data.Next(displayedDirections[pos]);
+        SetDisplays();
     }
     int Concat(IEnumerable<int> nums)
     {
@@ -149,18 +200,50 @@ public class FrightenedGMScript : MonoBehaviour
         Debug.LogFormat("[Frightened Ghost Movement #{0}] {1}", moduleId, string.Format(msg, args));
     }
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Use <!{0} foobar> to do something.";
+    private readonly string TwitchHelpMessage = @"Use <!{0} submit URDL> to submit directions up, right, down, left. Use <!{0} reset> to reset the module.";
 #pragma warning restore 414
-
+    
     IEnumerator ProcessTwitchCommand(string command)
     {
         command = command.Trim().ToUpperInvariant();
-        List<string> parameters = command.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-        yield return null;
+        Match m = Regex.Match(command, "SUBMIT ([URDL]{4})");
+        if (command == "RESET")
+        {
+            yield return null;
+            pacMan.OnInteract();
+            yield return new WaitUntil(() => Time.time - timeHeld > 0.4);
+            pacMan.OnInteractEnded();
+        }
+        else if (m.Success)
+        {
+            yield return null;
+            string answer = m.Groups[1].Value;
+            for (int i = 0; i < 4; i++)
+            {
+                while (displayedDirections[i].ToString()[0] != answer[i])
+                {
+                    ghosts[i].OnInteract();
+                    yield return new WaitForSeconds(.2f);
+                }
+            }
+            pacMan.OnInteract();
+            pacMan.OnInteractEnded();
+            yield return new WaitForSeconds(.2f);
+        }
     }
 
     IEnumerator TwitchHandleForcedSolve()
     {
-        yield return null;
+        for (int i = 0; i < 4; i++)
+        {
+            while (displayedDirections[i] != finalDirections[i])
+            {
+                ghosts[i].OnInteract();
+                yield return new WaitForSeconds(.2f);
+            }
+        }
+        pacMan.OnInteract();
+        pacMan.OnInteractEnded();
+        yield return new WaitForSeconds(.2f);
     }
 }

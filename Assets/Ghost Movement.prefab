@@ -273,6 +273,7 @@ GameObject:
   - component: {fileID: 114454383462897410}
   - component: {fileID: 114853960920223876}
   - component: {fileID: 114139553842080666}
+  - component: {fileID: 114202063138489212}
   - component: {fileID: 114666742828329058}
   m_Layer: 0
   m_Name: Ghost Movement
@@ -1551,6 +1552,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HighlightScale: {x: 1, y: 1, z: 1}
   OutlineAmount: 0
+--- !u!114 &114202063138489212
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1676409040304040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adf69c2de51bd3c43bbd9bc22578ee08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _seed: 1
 --- !u!114 &114219145187842024
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1721,13 +1734,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf64935cdda212e4fa3dc0d500245c6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bomb: {fileID: 0}
-  Audio: {fileID: 0}
-  Module: {fileID: 0}
-  Ruleseed: {fileID: 0}
-  ghosts: []
-  pacMan: {fileID: 0}
-  displays: []
+  Bomb: {fileID: 114454383462897410}
+  Audio: {fileID: 114915473299363512}
+  Module: {fileID: 114853960920223876}
+  Ruleseed: {fileID: 114202063138489212}
+  ghosts:
+  - {fileID: 114023367228818050}
+  - {fileID: 114462471262838644}
+  - {fileID: 114361292949797488}
+  - {fileID: 114135556153054044}
+  pacMan: {fileID: 114782913704618076}
+  displays:
+  - {fileID: 102803410246447610}
+  - {fileID: 102490300771987954}
+  - {fileID: 102804050973155192}
+  - {fileID: 102189926000168914}
 --- !u!114 &114703892941651350
 MonoBehaviour:
   m_ObjectHideFlags: 1

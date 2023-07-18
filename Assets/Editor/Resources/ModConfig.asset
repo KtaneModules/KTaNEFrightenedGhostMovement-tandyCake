@@ -11,15 +11,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
   m_Name: ModConfig
   m_EditorClassIdentifier: 
-  id: ghostMovement
-  title: Ghost Movement
-  author: Blananas2
-  description: 'Who knew controlling ghosts was so complicated?
-
-
-    Module ID: ghostMovement
-
-    The manual can be found here: https://ktane.timwi.de/HTML/Ghost%20Movement.html'
-  version: idk
+  id: frightenedGhostMovement
+  title: Frightened Ghost Movement
+  author: tandyCake
+  description: "\u201CWhy are you blue?\u201D\n\nModule by tandyCake\nModel provided
+    by blananas2\nmoduleID: frightenedGhostMovement\nManual can be found on ktane.timwi.de"
+  version: 1.0.0
   outputFolder: build
   previewImage: {fileID: 2800000, guid: f1d6fc7b7357be540a22436d214a6ae2, type: 3}

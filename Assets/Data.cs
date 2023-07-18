@@ -13,51 +13,66 @@ public class Intersection
     public List<Dir> outlets;
     public List<Dir> inlets;
 
-    public static Intersection T(string coord, Dir d)
+    public static Intersection T(string coord, Dir wall)
     {
-        return new Intersection() { coordinate = coord, }
+        List<Dir> all1 = All;
+        List<Dir> all2 = All;
+        all1.Remove(wall);
+        all2.Remove(Data.Invert(wall));
+        return new Intersection() { coordinate = coord, outlets = all1, inlets = all2 };
     }
-
-    private static List<Dir> FourWay
-    { get { return new List<Dir>() { Dir.Right, Dir.Down, Dir.Left, Dir.Up }} }
+    public static Intersection FourWay(string coord)
+    {
+        return new Intersection() { coordinate = coord, inlets = All, outlets = All};
+    }
+    public static Intersection Horiz(string coord, Dir wall)
+    {
+        List<Dir> ins = All;
+        ins.Remove(wall);
+        return new Intersection() { coordinate = coord, inlets = ins, outlets = new List<Dir>() { Dir.Left, Dir.Right } };
+    }
+    private static List<Dir> All
+    { get { return new List<Dir>() { Dir.Right, Dir.Down, Dir.Left, Dir.Up }; } }
     
 }
 public static class Data
 {
     public static List<Intersection> intersections = new List<Intersection>()
     {
-        new Intersection( "F1", TOut(Dir.Up),  ),
-        new Intersection( "U1", TOut(Dir.Up) ),
-        new Intersection( "A5", TOut(Dir.Left) ),
-        new Intersection( "F5", FourWay ),
-        new Intersection( "I5", TOut(Dir.Up) ),
-        new Intersection( "R5", TOut(Dir.Up) ),
-        new Intersection( "U5", FourWay ),
-        new Intersection( "Z5", TOut(Dir.Right) ),
-        new Intersection( "F8", TOut(Dir.Right) ),
-        new Intersection( "U8", TOut(Dir.Left) ),
-        new Intersection( "L11", Horiz ),
-        new Intersection( "O11", Horiz ),
-        new Intersection( "F14", FourWay ),
-        new Intersection( "I14", TOut(Dir.Right) ),
-        new Intersection( "R14", TOut(Dir.Left) ),
-        new Intersection( "U14", FourWay ),
-        new Intersection( "I17", TOut(Dir.Left) ),
-        new Intersection( "R17", TOut(Dir.Right) ),
-        new Intersection( "F20", FourWay ),
-        new Intersection( "I20", TOut(Dir.Down) ),
-        new Intersection( "R20", TOut(Dir.Down) ),
-        new Intersection( "U20", FourWay ),
-        new Intersection( "F23", TOut(Dir.Left) ),
-        new Intersection( "I23", TOut(Dir.Up) ),
-        new Intersection( "L23", Horiz ),
-        new Intersection( "O23", Horiz ),
-        new Intersection( "R23", TOut(Dir.Up) ),
-        new Intersection( "U23", TOut(Dir.Right) ),
-        new Intersection( "C26", TOut(Dir.Down) ),
-        new Intersection( "X26", TOut(Dir.Down) ),
-        new Intersection( "L29", TOut(Dir.Down) ),
-        new Intersection( "O29", TOut(Dir.Down) )
+        Intersection.T("F1", Dir.Up),
+        Intersection.T("U1", Dir.Up),
+        Intersection.T("A5", Dir.Left),
+        Intersection.FourWay("F5"),
+        Intersection.T("I5", Dir.Up),
+        Intersection.T("L5", Dir.Down),
+        Intersection.T("O5", Dir.Down),
+        Intersection.T("R5", Dir.Up),
+        Intersection.FourWay("U5"),
+        Intersection.T("Z5", Dir.Right),
+        Intersection.T("F8", Dir.Right),
+        Intersection.T("U8", Dir.Left),
+        Intersection.Horiz("L11", Dir.Down),
+        Intersection.Horiz("O11", Dir.Down),
+        Intersection.FourWay("F14"),
+        Intersection.T("I14", Dir.Right),
+        Intersection.T("R14", Dir.Left),
+        Intersection.FourWay("U14"),
+        Intersection.T("I17", Dir.Left),
+        Intersection.T("R17", Dir.Right),
+        Intersection.FourWay("F20"),
+        Intersection.T("I20", Dir.Down),
+        Intersection.T("R20", Dir.Down),
+        Intersection.FourWay("U20"),
+        Intersection.T("F23", Dir.Left),
+        Intersection.T("I23", Dir.Up),
+        Intersection.Horiz("L23", Dir.Down),
+        Intersection.Horiz("O23", Dir.Down),
+        Intersection.T("R23", Dir.Up),
+        Intersection.T("U23", Dir.Right),
+        Intersection.T("C26", Dir.Down),
+        Intersection.T("X26", Dir.Down),
+        Intersection.T("L29", Dir.Down),
+        Intersection.T("O29", Dir.Down)
     };
     public static Dictionary<Dir, char> arrows = new Dictionary<Dir, char>()
     {
@@ -66,6 +81,14 @@ public static class Data
         { Dir.Left, '←' },
         { Dir.Up, '↑' },
     };
+    public static Dir Next(Dir d)
+    {
+        return (Dir)(((int)d + 1) % 4);
+    }
+    public static Dir Invert(Dir d)
+    {
+        return (Dir)(((int)d + 2) % 4);
+    }
     private static List<Dir> FourWay
     { get { return new List<Dir>() { Dir.Right, Dir.Down, Dir.Left, Dir.Up }; } }
     private static List<Dir> Horiz
